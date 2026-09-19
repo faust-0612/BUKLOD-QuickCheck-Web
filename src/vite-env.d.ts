@@ -1,5 +1,9 @@
 /// <reference types="vite/client" />
+
 declare module 'mammoth' {
-  const mammoth: { extractRawText(input: { arrayBuffer: ArrayBuffer }): Promise<{ value: string; messages: unknown[] }> };
+  type RawTextResult = { value: string; messages: unknown[] };
+  const mammoth: {
+    extractRawText(input: { arrayBuffer: ArrayBuffer }): Promise<RawTextResult>;
+  };
   export default mammoth;
 }

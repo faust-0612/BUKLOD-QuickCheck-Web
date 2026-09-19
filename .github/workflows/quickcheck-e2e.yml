@@ -1,0 +1,56 @@
+name: QuickCheck Parity E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quickcheck-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Package lock parity
+        run: node scripts/quickcheck-lock-parity.mjs
+      - name: Production dependency security audit
+        run: node scripts/quickcheck-security-audit.mjs
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Production build
+        run: npm run build
+      - name: Performance budget
+        run: node scripts/quickcheck-performance.mjs
+      - name: Static parity contract
+        run: node scripts/quickcheck-contract.mjs
+      - name: Live Supabase backend smoke
+        run: node scripts/quickcheck-backend-smoke.mjs
+      - name: Backend concurrency / latency smoke
+        run: node scripts/quickcheck-load-smoke.mjs
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser E2E
+        env:
+          QC_E2E_PORT: '4173'
+        run: npm run test:e2e
+      - name: Vercel production parity smoke
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: node scripts/quickcheck-production-smoke.mjs
+      - name: Vercel production UI smoke
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: node scripts/quickcheck-production-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: quickcheck-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
