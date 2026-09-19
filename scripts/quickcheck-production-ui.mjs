@@ -28,11 +28,12 @@ try {
 
   await page.getByRole('button', { name: 'Load Demo Data' }).click();
   await page.getByText('END-TO-END BATCH REPORT').waitFor({ state: 'visible' });
-  const scanned = page.getByRole('button').filter({ hasText: /^Scanned.*View/i }).first();
-  await scanned.click();
+  const report = page.locator('section').filter({ hasText: 'END-TO-END BATCH REPORT' }).first();
+  const captured = report.getByRole('button').filter({ hasText: /Captured/i }).first();
+  await captured.click();
   await page.getByText('Report Inspector').waitFor({ state: 'visible' });
   await page.getByRole('dialog').filter({ hasText: 'Report Inspector' }).getByRole('button', { name: /CLOSE/i }).click();
-  await page.getByRole('button', { name: /Clear/i }).click();
+  await page.getByRole('button', { name: 'Clear', exact: true }).click();
   await page.getByText(/Batch cleared/i).waitFor({ state: 'visible' });
 
   if (pageErrors.length) throw new Error('Production page error: ' + pageErrors.join(' | '));

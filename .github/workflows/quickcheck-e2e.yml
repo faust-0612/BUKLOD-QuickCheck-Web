@@ -24,6 +24,12 @@ jobs:
         run: node scripts/quickcheck-security-audit.mjs
       - name: TypeScript
         run: npx tsc --noEmit
+      - name: Install Rollup Linux native package
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          ROLLUP_VERSION="$(node -p "require('./node_modules/rollup/package.json').version")"
+          npm install --no-save --package-lock=false --ignore-scripts "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
       - name: Production build
         run: npm run build
       - name: Performance budget
