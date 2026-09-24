@@ -18,6 +18,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { prepareLocalFile, type LocalInputFrame } from './localImport';
+import QuickCheckEconomyPanel from './QuickCheckEconomyPanel';
 
 type TempFrame = LocalInputFrame;
 type ExtractedPage = {
@@ -1007,6 +1008,8 @@ function App() {
           </div>
           <button onClick={loadDemo} className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold hover:bg-slate-800">Load Demo Data</button>
         </header>
+
+        <QuickCheckEconomyPanel connected={!!buklodToken || buklodHandoffConnected} />
 
         <section className="mb-6 rounded-3xl border border-cyan-400/25 bg-slate-900 p-5 sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><div className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">Optional identity authority</div><h2 className="mt-1 text-xl font-black">BUKLOD Classroom Roster Sync</h2><p className="mt-1 max-w-3xl text-xs text-slate-400">Open QuickCheck from Profile &gt; Accessory Apps for secure access with no second sign-in. Classroom roster sync is optional and remains available when you want enrolled students to be the identity authority.</p></div>{(buklodToken || buklodHandoffConnected) && <button onClick={disconnectBuklod} className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold">DISCONNECT</button>}</div>

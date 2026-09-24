@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -40,18 +42,36 @@ jobs:
         run: node scripts/quickcheck-backend-smoke.mjs
       - name: Backend concurrency / latency smoke
         run: node scripts/quickcheck-load-smoke.mjs
+      - name: Economy-only change classifier
+        id: economy_delta
+        run: node scripts/quickcheck-economy-change-gate.mjs
+      - name: QuickCheck economy static contract
+        if: steps.economy_delta.outputs.economy_only == 'true'
+        run: node scripts/quickcheck-economy-contract.mjs
+      - name: QuickCheck economy backend smoke
+        if: steps.economy_delta.outputs.economy_only == 'true'
+        run: node scripts/quickcheck-economy-backend-smoke.mjs
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Browser E2E
+        if: steps.economy_delta.outputs.economy_only != 'true'
         env:
           QC_E2E_PORT: '4173'
         run: npm run test:e2e
+      - name: Economy delta E2E only
+        if: steps.economy_delta.outputs.economy_only == 'true'
+        env:
+          QC_E2E_PORT: '4173'
+        run: npx playwright test tests/quickcheck-economy.spec.ts --project=chromium
       - name: Vercel production parity smoke
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: node scripts/quickcheck-production-smoke.mjs
       - name: Vercel production UI smoke
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.economy_delta.outputs.economy_only != 'true'
         run: node scripts/quickcheck-production-ui.mjs
+      - name: QuickCheck economy production smoke
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.economy_delta.outputs.economy_only == 'true'
+        run: node scripts/quickcheck-economy-production-smoke.mjs
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
